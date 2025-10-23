@@ -1,6 +1,13 @@
 offline_model/
 
+Output_pdfs/
+
 
 
 backend/backend.log
 backend/__pycache__
+backend/api/__pycache__
+backend/core/__pycache__
+backend/model/__pycache__
+backend/services/__pycache__
+backend/utils/__pycache__

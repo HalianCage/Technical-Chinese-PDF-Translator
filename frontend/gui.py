@@ -144,7 +144,7 @@ class App(ctk.CTk):
             with open(self.selected_file_path, "rb") as f:
                 files = {"file": (os.path.basename(self.selected_file_path), f, "application/pdf")}
                 
-                response = requests.post(f"{BASE_URL}/start-translation/", files=files, timeout=30)
+                response = requests.post(f"{BASE_URL}/translate/start-translation/", files=files, timeout=30)
             
             if response.status_code == 200:
                 self.current_job_id = response.json().get("job_id")
@@ -166,7 +166,7 @@ class App(ctk.CTk):
             return
 
         try:
-            response = requests.get(f"{BASE_URL}/job-status/{self.current_job_id}", timeout=5)
+            response = requests.get(f"{BASE_URL}/translate/job-status/{self.current_job_id}", timeout=5)
             
             if response.status_code == 200:
                 data = response.json()
@@ -206,7 +206,7 @@ class App(ctk.CTk):
         self.label_status.configure(text="Status: Downloading...")
         
         try:
-            response = requests.get(f"{BASE_URL}/download/{self.current_job_id}", stream=True, timeout=60)
+            response = requests.get(f"{BASE_URL}/translate/download/{self.current_job_id}", stream=True, timeout=60)
             
             if response.status_code == 200:
                 with open(save_path, "wb") as f:

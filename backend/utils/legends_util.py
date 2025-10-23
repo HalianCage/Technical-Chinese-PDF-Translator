@@ -1,9 +1,6 @@
-# legend_utils.py
-
-# Install dependencies
-# These should be run once in your main application setup or environment:
-# !pip install PyPDF2 pikepdf PyMuPDF reportlab python-abbreviate
-
+# ==============================================================================
+# LEGENDS(AND ITS PDF PAGE) CREATION FILE
+# ==============================================================================
 import fitz  # PyMuPDF
 import re
 from reportlab.pdfgen import canvas
@@ -74,11 +71,11 @@ def refine_abbreviation(term, used_codes, max_len=3):
     return candidate
 
 
-def determine_legend_font_size(avg_font_size, min_font_size=7):
-    """
-    Returns a readable legend font size based on a heuristic average, with a floor.
-    """
-    return max(avg_font_size, min_font_size)
+# def determine_legend_font_size(avg_font_size, min_font_size=7):
+#     """
+#     Returns a readable legend font size based on a heuristic average, with a floor.
+#     """
+#     return max(avg_font_size, min_font_size)
 
 
 def _create_legend_data_from_terms(legend_terms_dict):
@@ -145,7 +142,3 @@ def create_legend_pdf_page(legend_terms, page_height, page_width):
     # Return as a fitz.Document
     legend_doc = fitz.open(stream=packet.read(), filetype="pdf")
     return legend_doc
-
-# NOTE:
-# The previous raster-based functions (get_corner_color, crop_blank_margins, create_canvas_with_image,
-# add_legends_to_pdf, etc.) have been removed in favor of a vector-first, in-memory approach.
