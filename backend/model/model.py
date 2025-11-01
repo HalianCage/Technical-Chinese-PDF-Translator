@@ -21,11 +21,11 @@ def load_model():
     
     if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
         base_path = sys._MEIPASS
-        local_model_path = os.path.join(base_path, "offline_model")
+        local_model_path = os.path.join(base_path, "trained_helsinki")
     else:
         # Path is relative to this file's location (backend/ml/)
         base_path = os.path.dirname(os.path.abspath(__file__))
-        local_model_path = os.path.join(base_path, "..", "..", "offline_model")
+        local_model_path = os.path.join(base_path, "..", "..", "trained_helsinki")
     
     logger.info(f"Attempting to load model from path: {local_model_path}")
     

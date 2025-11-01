@@ -2,6 +2,13 @@ offline_model/
 
 Output_pdfs/
 
+trained_helsinki/
+
+fine_tuning_shit/
+
+important_files/
+
+trained_helsinki.zip
 
 
 backend/backend.log

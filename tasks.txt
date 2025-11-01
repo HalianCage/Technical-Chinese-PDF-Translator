@@ -5,7 +5,7 @@
 3) Test the current working. - DONE
 4) Modularize the code. - DONE
 5) Implement Batch processing. - DONE
-6) The tool currently takes the input pdfs and makes them into the output. Make it to create a copy and use that copy.
+6) The tool currently takes the input pdfs and makes them into the output. Make it to create a copy and use that copy. - DONE
 7) Check out table extracting python packages.
 8) Package and test the application exe.
 9)How to change the python script icon that shows in the task bar. Also, change the main icon in the top left of application window.
