@@ -140,12 +140,12 @@ def get_my_hardware_id():
     Generate a unique, stable HWID using Machine UUID.
     """
     try:
-        result = str(subprocess.check_output('wmic csproduct get uuid', shell=True, text=True))
+        uuid = subprocess.check_output(
+            ['powershell', '-Command',
+            'Get-CimInstance Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID'],
+            text=True
+        ).strip()
 
-        # Extract the UUID from the output, removing whitespace and newlines
-        uuid = result.strip()
-        uuid = uuid.split("\n")
-        uuid = uuid[-1]
 
         logger.info(f"uuid: {uuid}")
 
