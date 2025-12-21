@@ -162,7 +162,7 @@ def get_my_hardware_id():
         ).strip()
 
 
-        logger.info(f"uuid: {uuid}")
+        logger.info(f"successfully accessed machine UUID")
 
         return uuid
 
