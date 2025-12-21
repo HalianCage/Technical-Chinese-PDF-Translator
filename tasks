@@ -1,3 +1,11 @@
 1) Implement the offline licensing system. - DONE
 2) Integrate OCR and remove the doc specific working
 3) Try implementing pdfplumber's table identification and then extracting table specific words using its coordinates
+
+
+--- Create 2 exe's - one with the licensing system, and another with a hoax licensing system, so that if the first one doesn't run, you can quickly give the second ---
+
+
+implement a double fallback mechanism for hardware ID not identification
+    1. Try reaching to the online servers and identify the user
+    2. use a hardcoded value to be used as an identification system, fooling the user into thinking it is working fine.
