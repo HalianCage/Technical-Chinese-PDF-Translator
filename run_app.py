@@ -10,6 +10,7 @@ import tkinter as tk
 from tkinter import messagebox
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
+from getmac import get_mac_address
 
 
 # --- Load environment variables ---
@@ -67,6 +68,20 @@ except ImportError as e:
 def activate_or_validate_license():
     os.makedirs(LICENSE_FILE_DIR, exist_ok=True)
     current_hwid = get_my_hardware_id()
+
+    # using the mac address of the device as the fallback in case the uuid powershell command fails (using getmac python package)
+    if current_hwid is None:
+        try:
+            logger.error("Machine UUID failed. Trying MAC address")
+            current_hwid = get_mac_address()
+        
+        except Exception as e:
+
+            logger.error(f"Error retrieving MAC address: {e}")
+            logger.error("Falling back on default ID...")
+
+            # returning a dummy ID in case even the mac address function fails for some reason, so that the user can have a seamless experience.
+            return "705D6CA4-2F34-40F5-FFFF-26A45AFB5609"
 
     # 1️⃣ Check if we already have a valid license
     if validate_license_file(current_hwid):
