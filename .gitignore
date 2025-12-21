@@ -23,5 +23,7 @@ frontend/__pycache__
 
 build/
 dist/
+venv/
+.vscode/
 
 backend.log

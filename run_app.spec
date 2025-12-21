@@ -63,5 +63,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['D:\Personal Projects\CAD-Translation-Tool\PDF-Translation-App-Icon.ico']
+    icon=['D:\Personal Projects\Chinese-CAD-Translation-Tool\PDF-Translation-App-Icon.ico']
 )

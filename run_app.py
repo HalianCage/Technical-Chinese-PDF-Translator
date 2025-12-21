@@ -2,15 +2,21 @@ import threading
 import uvicorn
 import sys
 import os
+import subprocess
 import uuid
 import requests
 import json
-import tkinter
+import tkinter as tk
 from tkinter import messagebox
 from dotenv import load_dotenv
+from cryptography.fernet import Fernet
+from getmac import get_mac_address
+
 
 # --- Load environment variables ---
 load_dotenv()
+
+
 
 # --- Step 1: Add project subfolders to Python path ---
 try:
@@ -21,12 +27,20 @@ except Exception:
 sys.path.append(os.path.join(base_path, 'frontend'))
 sys.path.append(os.path.join(base_path, 'backend'))
 
-# --- Constants ---``
+
+
+# --- Constants ---
 ACTIVATION_SERVER_URL = "https://chinese-cad-activation-server.vercel.app/api/activate"  # <--- CHANGE THIS
 APP_NAME = "Chinese-CAD-Translation"
-
 LICENSE_FILE_DIR = os.path.join(os.environ['APPDATA'], APP_NAME)
 LICENSE_FILE_PATH = os.path.join(LICENSE_FILE_DIR, 'license.dat')
+# 🛑 SECURITY NOTE: 
+# In a Python app, strings can be found by hackers. 
+# For maximum security, use PyArmor to obfuscate this script.
+# This MUST match the key in your admin_keygen.py
+SECRET_KEY = b'2avw6AEzFpQO-Zt-a0gxSndOcwRJC5QobzJzijHFW1o='
+
+
 
 # --- Import app components ---
 try:
@@ -48,22 +62,139 @@ except ImportError as e:
     logger.error("Press Enter to exit...")
     sys.exit(1)
 
+
+
+''' --- License Activation Flow --- '''
+def activate_or_validate_license():
+    os.makedirs(LICENSE_FILE_DIR, exist_ok=True)
+    current_hwid = get_my_hardware_id()
+
+    # using the mac address of the device as the fallback in case the uuid powershell command fails (using getmac python package)
+    if current_hwid is None:
+        try:
+            logger.error("Machine UUID failed. Trying MAC address")
+            current_hwid = get_mac_address()
+        
+        except Exception as e:
+
+            logger.error(f"Error retrieving MAC address: {e}")
+            logger.error("Falling back on default ID...")
+
+            # returning a dummy ID in case even the mac address function fails for some reason, so that the user can have a seamless experience.
+            return "705D6CA4-2F34-40F5-FFFF-26A45AFB5609"
+
+    # 1️⃣ Check if we already have a valid license
+    if validate_license_file(current_hwid):
+        logger.info("License valid. Launching app.")
+        run_main_application()
+        return
+
+    # 2️⃣ No valid license? Show the "Offline Activation" Window
+    show_activation_dialog(current_hwid)
+
+
+# License activation UI
+def show_activation_dialog(current_hwid):
+    """
+    Displays a window forcing the user to enter a license key.
+    """
+    root = tk.Tk()
+    root.title("Activation Required")
+    root.geometry("500x300")
+    
+    # Label: Instructions
+    lbl_info = tk.Label(root, text="This application is not activated.", font=("Arial", 12, "bold"))
+    lbl_info.pack(pady=10)
+
+    lbl_instr = tk.Label(root, text=f"Please share the below Unique Generated Key to\n\n{current_hwid}", font=("Arial", 10))
+    lbl_instr.pack(pady=10)
+    
+    # Input: License Key Paste Area
+    lbl_key = tk.Label(root, text="And paste your received License Activation Key below:")
+    lbl_key.pack()
+    
+    entry_key = tk.Entry(root, width=50)
+    entry_key.pack(pady=5)
+
+    def on_activate():
+        # Get the key the user pasted
+        key_input = entry_key.get().strip()
+        
+        # Save it to the license file
+        try:
+            # User might paste the string, we need bytes
+            with open(LICENSE_FILE_PATH, 'wb') as f:
+                f.write(key_input.encode())
+            
+            # Check if it works
+            if validate_license_file(current_hwid):
+                messagebox.showinfo("Success", "Activation Successful! Please restart the app.")
+                root.destroy()
+                sys.exit(0) # Exit so they restart fresh
+            else:
+                messagebox.showerror("Error", "Invalid License Key.\nMake sure you pasted the entire string.")
+                # We don't close the window, let them try again
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to save license: {e}")
+
+    btn_activate = tk.Button(root, text="Activate License", command=on_activate, bg="#4CAF50", fg="white")
+    btn_activate.pack(pady=20)
+
+    # Handle Window Close (Exit App)
+    def on_close():
+        root.destroy()
+        sys.exit(0)
+    
+    root.protocol("WM_DELETE_WINDOW", on_close)
+    root.mainloop()
+
+
 # --- Licensing Helper Functions ---
 def get_my_hardware_id():
     """
-    Generate a unique, stable HWID using MAC + Machine UUID.
+    Generate a unique, stable HWID using Machine UUID.
     """
     try:
-        mac = uuid.getnode()
-        sys_id = uuid.uuid1().int >> 64  # Add system randomness
-        return str(abs(hash((mac, sys_id))))  # Hash for privacy
+        uuid = subprocess.check_output(
+            ['powershell', '-Command',
+            'Get-CimInstance Win32_ComputerSystemProduct | Select-Object -ExpandProperty UUID'],
+            text=True
+        ).strip()
+
+
+        logger.info(f"uuid: {uuid}")
+
+        return uuid
+
     except Exception as e:
-        print(f"[ERROR] Could not generate HWID: {e}")
-        show_error_popup("License Error", "Failed to generate device ID.")
-        sys.exit(1)
+        logger.error(f"Error retrieving UUID: {e}")
+        return None
+
+
+def validate_license_file(hwid):
+    """
+    Reads the license file and tries to decrypt it.
+    If it decrypts successfully AND matches the HWID, it is valid.
+    """
+    if not os.path.exists(LICENSE_FILE_PATH):
+        return False
+
+    try:
+        with open(LICENSE_FILE_PATH, 'rb') as f:
+            encrypted_token = f.read()
+
+        cipher_suite = Fernet(SECRET_KEY)
+        decrypted_hwid = cipher_suite.decrypt(encrypted_token).decode()
+
+        if decrypted_hwid == hwid:
+            return True
+    except Exception as e:
+        logger.error(f"License validation failed: {e}")
+    
+    return False
 
 def show_error_popup(title, message):
-    root = tkinter.Tk()
+    root = tk.Tk()
     root.withdraw()
     messagebox.showerror(title, message)
     root.destroy()
@@ -104,59 +235,6 @@ def run_main_application():
     # When the GUI window is closed, mainloop() exits.
     # The script ends. The daemon backend thread is killed.
     logger.info("Frontend closed. Exiting app.")
-
-# --- License Activation Flow ---
-def activate_or_validate_license():
-    os.makedirs(LICENSE_FILE_DIR, exist_ok=True)
-
-    current_hwid = get_my_hardware_id()
-    saved_hwid = None
-
-    # 1️⃣ Check local license
-    if os.path.exists(LICENSE_FILE_PATH):
-        try:
-            with open(LICENSE_FILE_PATH, 'r') as f:
-                saved_hwid = f.read().strip()
-        except Exception as e:
-            show_error_popup("License Error", f"Could not read license file: {e}")
-
-    # 2️⃣ Fast Path: Local validation
-    if current_hwid == saved_hwid:
-        logger.info("License validated locally.")
-        run_main_application()
-        sys.exit(0)
-
-    # 3️⃣ Slow Path: Online activation
-    logger.info("No valid local license. Activating online...")
-
-    root = tkinter.Tk()
-    root.title("Activating")
-    root.geometry("250x50")
-    label = tkinter.Label(root, text="Activating, please wait...")
-    label.pack(pady=10, padx=10)
-    root.update()
-
-    try:
-        response = requests.post(
-            ACTIVATION_SERVER_URL,
-            json={'hwid': current_hwid},
-            timeout=15
-        )
-        data = response.json()
-
-        if response.status_code == 200 and data['status'] == 'success':
-            logger.info("Activation successful. Saving license locally.")
-            with open(LICENSE_FILE_PATH, 'w') as f:
-                f.write(current_hwid)
-
-            root.destroy()
-            run_main_application()
-        else:
-            root.destroy()
-            show_error_popup("Activation Failed", f"Error: {data.get('message', 'Unknown error')}")
-    except Exception as e:
-        root.destroy()
-        show_error_popup("Connection Error", f"Could not connect to activation server.\n\n({e})")
 
 # --- Entry Point ---
 if __name__ == "__main__":
