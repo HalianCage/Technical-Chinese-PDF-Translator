@@ -5,23 +5,90 @@
 import re
 import pdfplumber
 import io
+import pdf2image as pi
+import tempfile
+import logging
+from pathlib import Path
+from ppocrv5_onnx.ocr_engine import OCREngine
 
+logger = logging.getLogger(__name__)
 # ==============================================================================
 # FUNCTION TO EXTRACT ALL VECTOR TEXT FROM THE DOC
 # ==============================================================================
-def extract_text_with_location(doc):
-    # ... (same as your original code)
+def extract_text_with_location(pdf_path):
+
+    logger.info("inside extract_text_with_location function")
+
+    """
+    pdf_images: string of pdf path
+    returns: list of dicts with text, bbox, page
+    """
+
+    images = pi.convert_from_path(pdf_path, dpi=200)
+
     extracted_text_with_location = []
-    for page_num in range(doc.page_count):
-        page = doc[page_num]
-        words = page.get_text("words")
-        for word in words:
-            extracted_text_with_location.append({
-                "text": word[4],
-                "bbox": (word[0]-2, word[1]-2, word[2]+2, word[3]+2),
-                "page": page_num
-            })
+
+    logger.info("PDF converted to images. Now initializing OCR engine")
+
+    # initializing ocr engine
+    ocr = OCREngine()
+
+    logger.info("successfully initialized OCR instance")
+
+    # Create a temp directory once
+    with tempfile.TemporaryDirectory() as tmpdir:
+        tmpdir = Path(tmpdir)
+
+        for page_num, page_image in enumerate(images):
+
+            logger.info(f"inside image loop, page num {page_num}")
+
+            # ---- 1️⃣ Save page image temporarily ----
+            img_path = tmpdir / f"page_{page_num}.png"
+            page_image.save(img_path)
+
+            logger.info("image saved temporarily. Now running ocr...")
+
+            # ---- 2️⃣ Run OCR ----
+            results = ocr.run(str(img_path))
+
+            logger.info("ocr complete. moving ahead")
+
+            # ---- 3️⃣ Parse OCR output ----
+            for r in results:
+                text = r.text.strip()
+                if not text:
+                    continue
+
+                box = r.box  # numpy array: [[x,y], ...]
+
+                x_coords = [p[0] for p in box]
+                y_coords = [p[1] for p in box]
+
+                x_min = min(x_coords)
+                y_min = min(y_coords)
+                x_max = max(x_coords)
+                y_max = max(y_coords)
+
+                scale = 72 / 200 # constant to scale pixmap coordinates to pdf coordinate system
+
+                extracted_text_with_location.append({
+                    "text": text,
+                    "bbox": (
+                        (x_min - 2) * scale,
+                        (y_min - 2) * scale,
+                        (x_max + 2) * scale,
+                        (y_max + 2) * scale
+                    ),
+                    "page": page_num
+                })
+
+            logger.info('result transformation complete. output: ', extracted_text_with_location)
+
+            # (No manual cleanup needed — temp dir handles it)
+
     return extracted_text_with_location
+
 
 
 

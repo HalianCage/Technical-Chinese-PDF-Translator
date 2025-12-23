@@ -3,34 +3,25 @@ import uvicorn
 import sys
 import os
 import subprocess
-import uuid
-import requests
-import json
 import tkinter as tk
 from tkinter import messagebox
 from dotenv import load_dotenv
 from cryptography.fernet import Fernet
 from getmac import get_mac_address
-
+from runtime_variables import BASE_PATH
 
 # --- Load environment variables ---
 load_dotenv()
 
 
 
-# --- Step 1: Add project subfolders to Python path ---
-try:
-    base_path = sys._MEIPASS  # When running as PyInstaller EXE
-except Exception:
-    base_path = os.path.abspath(".")
-
-sys.path.append(os.path.join(base_path, 'frontend'))
-sys.path.append(os.path.join(base_path, 'backend'))
+sys.path.append(os.path.join(BASE_PATH, 'frontend'))
+sys.path.append(os.path.join(BASE_PATH, 'backend'))
 
 
 
 # --- Constants ---
-ACTIVATION_SERVER_URL = "https://chinese-cad-activation-server.vercel.app/api/activate"  # <--- CHANGE THIS
+# ACTIVATION_SERVER_URL = "https://chinese-cad-activation-server.vercel.app/api/activate"  # <--- CHANGE THIS
 APP_NAME = "Chinese-CAD-Translation"
 LICENSE_FILE_DIR = os.path.join(os.environ['APPDATA'], APP_NAME)
 LICENSE_FILE_PATH = os.path.join(LICENSE_FILE_DIR, 'license.dat')
