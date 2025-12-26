@@ -1,11 +1,18 @@
 1) Implement the offline licensing system. - DONE
-2) Integrate OCR and remove the doc specific working
-3) Try implementing pdfplumber's table identification and then extracting table specific words using its coordinates
+2) Integrate OCR and remove the doc specific working - DONE
+3) How to change the python script icon that shows in the task bar. Also, change the main icon in the top left of application window.
+4) Implement word wrap.
+5) Build and Integrate the new translation model.
+6) Implement dictionary feature before translation model to improve processing time.
+7) Integrate PDF error robustness into the process.
+8) Remove model loading before translation, start it in the background parallel to the user selecting the files, and then maybe even show it in the loading.
+9) Test and try the implementation of double loaded ML model(not priority, just to improve performance. Take device specs and performance into consideration.)
+10) Implement a feature such that after each successful run, clear out the backend.log. This will help to keep the backend logs only for when any error arises.
 
 
---- Create 2 exe's - one with the licensing system, and another with a hoax licensing system, so that if the first one doesn't run, you can quickly give the second ---
 
-
-implement a double fallback mechanism for hardware ID not identification
-    1. Try reaching to the online servers and identify the user
-    2. use a hardcoded value to be used as an identification system, fooling the user into thinking it is working fine.
+CURRENT ISSUE LIST:-
+1) Improve the translations. They are not upto the mark - 
+    - try offline LLMs? maybe package with the application and use within application?
+    - Try finding or creating an onnx format of hunyuan MT-7B
+1) If any input pdf has rotation in metadata, then text overlay naturally breaks and renders the output useless. try fixing it.

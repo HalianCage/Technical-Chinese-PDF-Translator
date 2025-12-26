@@ -3,9 +3,9 @@
 # ==============================================================================
 
 import re
+import fitz
 import pdfplumber
 import io
-import pdf2image as pi
 import tempfile
 import logging
 from pathlib import Path
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 # ==============================================================================
 # FUNCTION TO EXTRACT ALL VECTOR TEXT FROM THE DOC
 # ==============================================================================
-def extract_text_with_location(pdf_path):
+def extract_text_with_location(doc):
 
     logger.info("inside extract_text_with_location function")
 
@@ -24,7 +24,7 @@ def extract_text_with_location(pdf_path):
     returns: list of dicts with text, bbox, page
     """
 
-    images = pi.convert_from_path(pdf_path, dpi=200)
+    # images = pi.convert_from_path(pdf_path, dpi=200)
 
     extracted_text_with_location = []
 
@@ -39,9 +39,13 @@ def extract_text_with_location(pdf_path):
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir = Path(tmpdir)
 
-        for page_num, page_image in enumerate(images):
+        for page_num in range(doc.page_count):
 
             logger.info(f"inside image loop, page num {page_num}")
+
+            page = doc[page_num]
+
+            page_image = page.get_pixmap(dpi=200, alpha=False)
 
             # ---- 1️⃣ Save page image temporarily ----
             img_path = tmpdir / f"page_{page_num}.png"

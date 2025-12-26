@@ -28,7 +28,7 @@ def run_translation_task(job_id: str, pdf_path: str):
         job_state.update_job_status(job_id, "extracting")
 
         # Extract all text using fitz
-        all_extracted_text = extract_text_with_location(pdf_path)
+        all_extracted_text = extract_text_with_location(doc)
 
         # Filter out the Chinese text from it.
         chinese_text_data = filter_chinese_text(all_extracted_text)
