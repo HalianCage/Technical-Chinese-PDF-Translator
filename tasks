@@ -8,6 +8,7 @@
 8) Remove model loading before translation, start it in the background parallel to the user selecting the files, and then maybe even show it in the loading.
 9) Test and try the implementation of double loaded ML model(not priority, just to improve performance. Take device specs and performance into consideration.)
 10) Implement a feature such that after each successful run, clear out the backend.log. This will help to keep the backend logs only for when any error arises.
+11) Move the OCR_engine initialization from text_extraction.py(line 34), to the same place where model is initialized, to initialize it only once during application start up.
 
 
 
