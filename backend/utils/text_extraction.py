@@ -45,7 +45,7 @@ def extract_text_with_location(doc):
 
             page = doc[page_num]
 
-            page_image = page.get_pixmap(dpi=300, alpha=False)
+            page_image = page.get_pixmap(dpi=200, alpha=False)
 
             # ---- 1️⃣ Save page image temporarily ----
             img_path = tmpdir / f"page_{page_num}.png"

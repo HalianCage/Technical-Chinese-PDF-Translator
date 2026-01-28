@@ -39,26 +39,16 @@ def run_translation_task(job_id: str, pdf_path: str):
         job_state.update_job_status(job_id, "translating")
         translated_data = translate_chinese_to_english(chinese_text_data)
         
-        enriched_data, legend_terms = prepare_display_data(translated_data)
+        # enriched_data, legend_terms = prepare_display_data(translated_data)
 
         job_state.update_job_status(job_id, "creating_pdf")
         output_path = pdf_path.replace(".pdf", "_translated.pdf")
         
-        translated_doc = create_translated_doc_in_memory(doc, enriched_data)
+        translated_doc = create_translated_doc_in_memory(doc, translated_data)
 
-        if legend_terms:
-            first_page = translated_doc[0]
-            page_height = first_page.rect.height
-            legend_width = max(180, first_page.rect.width * 0.35)
-            legend_doc = create_legend_pdf_page(legend_terms, page_height=page_height, page_width=legend_width)
-            assemble_final_pdf(translated_doc, legend_doc, output_path)
-            translated_doc.close()
-            legend_doc.close()
-        else:
-            translated_doc.save(output_path)
-            translated_doc.close()
-
-
+        translated_doc.save(output_path)
+        translated_doc.close()
+        
         return output_path
 
     except Exception as e:

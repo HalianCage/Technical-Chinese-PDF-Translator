@@ -62,45 +62,39 @@ def prepare_display_data(translated_data):
 
     return enriched, legend_terms
 
-def create_translated_doc_in_memory(doc, enriched_translated_data):
+def create_translated_doc_in_memory(doc, translated_data):
     """
     Build a translated PDF (vector-first) in memory. Instead of writing to disk, return the fitz.Document.
-    Uses 'display_text' for overlayed content (may be full term or abbreviation).
+    Uses 'english_translation' for annotation content.
     """
     output_doc = fitz.open()
     for page_num in range(doc.page_count):
         page = doc[page_num]
-        page_img = page.get_pixmap(dpi=300, alpha=False)
+        page_img = page.get_pixmap(dpi=200, alpha=False)
         output_page = output_doc.new_page(width=page.rect.width, height=page.rect.height)
-        output_page.insert_image(output_page.rect, page_img)
-        for item in enriched_translated_data:
+        output_page.insert_image(output_page.rect, pixmap=page_img)
+        for item in translated_data:
             if item["page"] == page_num:
-                original_bbox = fitz.Rect(item["bbox"])
-                display_text = item.get("display_text", item.get("english_translation", ""))
+
+                # Recaliberate bbox to make sure that annotations come above their target text
+                annot_bbox = _annot_bbox(item["bbox"])
+
+                display_text = item.get("english_translation", item.get("text", ""))
                 if display_text:
         
-                    best_fsize = get_optimal_fontsize(original_bbox, display_text)
-
-                    leftover = -1
-                    font_size = best_fsize
-
-                    while leftover<0 and font_size >= 4:
-
-                        # Draw the rectangle
-                        output_page.draw_rect(original_bbox, color=(1, 1, 1), fill=(1, 1, 1), overlay=True, )
-
-                        # Insert the text
-                        leftover = output_page.insert_textbox(
-                            original_bbox, display_text, fontsize=font_size, fontname="helv",
-                            color=(0, 0, 0), align=fitz.TEXT_ALIGN_CENTER, overlay=True
-                        )
-
-                        font_size -= 1
+                    output_page.add_freetext_annot(annot_bbox, display_text, text_color=(1, 0.4, 0), fontsize=6)
 
                     # print(f"display_text:{display_text}, leftover: {leftover}")
                     
     return output_doc
 
+
+def _annot_bbox(bbox):
+
+    x_diff = bbox[2]-bbox[0]
+    y_diff = bbox[3]-bbox[1]
+
+    return bbox[0], bbox[1]-(0.5*y_diff), bbox[2], bbox[3]-y_diff
 
 def assemble_final_pdf(translated_doc, legend_doc, output_path):
     """
