@@ -1,7 +1,7 @@
 1) Implement the offline licensing system. - DONE
 2) Integrate OCR and remove the doc specific working - DONE
 3) How to change the python script icon that shows in the task bar. Also, change the main icon in the top left of application window.
-4) Implement word wrap.
+4) Implement word wrap. - NOT REQUIRED ANYMORE
 5) Build and Integrate the new translation model.
 6) Implement dictionary feature before translation model to improve processing time.
 7) Integrate PDF error robustness into the process.
@@ -9,7 +9,7 @@
 9) Test and try the implementation of double loaded ML model(not priority, just to improve performance. Take device specs and performance into consideration.)
 10) Implement a feature such that after each successful run, clear out the backend.log. This will help to keep the backend logs only for when any error arises.
 11) Move the OCR_engine initialization from text_extraction.py(line 34), to the same place where model is initialized, to initialize it only once during application start up.
-12) Test if creating and using an in memory copy of the input pdf for output pdf generation can resolve the rotation issue.
+12) Test if creating and using an in memory copy of the input pdf for output pdf generation can resolve the rotation issue. - ISSUE RESOLVED
 
 
 
@@ -17,4 +17,4 @@ CURRENT ISSUE LIST:-
 1) Improve the translations. They are not upto the mark - 
     - try offline LLMs? maybe package with the application and use within application?
     - Try finding or creating an onnx format of hunyuan MT-7B
-1) If any input pdf has rotation in metadata, then text overlay naturally breaks and renders the output useless. try fixing it.
+1) If any input pdf has rotation in metadata, then text overlay naturally breaks and renders the output useless. try fixing it. - RESOLVED
